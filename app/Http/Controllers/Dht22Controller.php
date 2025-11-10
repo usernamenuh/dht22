@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Dht22;
+use App\Models\Setting;
 
 class Dht22Controller extends Controller
 {
@@ -39,5 +40,23 @@ class Dht22Controller extends Controller
             'message' => 'Data fetched successfully',
             'data' => $dh1,
         ]);
+    }
+
+    public function getSetting()
+    {
+        $setting = Setting::first();
+        return response()->json([
+            'threshold_temp' => $setting ? $setting->threshold_temp : 30
+        ]);
+    }
+
+    // Mengubah setting dari web
+    public function updateSetting(Request $request)
+    {
+        $setting = Setting::first() ?? new Setting();
+        $setting->threshold_temp = $request->threshold_temp;
+        $setting->save();
+
+        return redirect()->back()->with('success', 'Setting diperbarui!');
     }
 }

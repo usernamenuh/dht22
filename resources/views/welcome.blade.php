@@ -418,6 +418,20 @@
         </div>
       </div>
 
+      <div class="card">
+        <h3>Setting Batas Suhu</h3>
+        <form action="/update-setting" method="POST">
+          @csrf
+          <label>Batas Suhu (°C): </label>
+          <input type="number" step="0.1" name="threshold_temp" value="{{ $setting->threshold_temp ?? 30 }}">
+          <button type="submit">Simpan</button>
+        </form>
+        @if(session('success'))
+          <p style="color:green">{{ session('success') }}</p>
+        @endif
+      </div>
+    
+
       <!-- Charts Section -->
       <div class="charts-section">
         <h2 class="section-title">Historical Data</h2>
