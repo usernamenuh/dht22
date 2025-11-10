@@ -7,7 +7,8 @@ use App\Models\Setting;
 use Illuminate\Http\Request;
 
 Route::get('/', function () {
-    return view('welcome');
+    $setting = Setting::first();
+    return view('welcome', compact('setting'));
 });
 
 
