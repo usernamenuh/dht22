@@ -7,6 +7,7 @@
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <!-- Chart.js untuk visualisasi data -->
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
     <style>
       * {
@@ -449,6 +450,57 @@
         </div>
       </div>
 
+<table class="table table-striped table-bordered align-middle">
+    <thead class="table-dark text-center">
+        <tr>
+            <th style="width: 30%">Nama Lampu</th>
+            <th style="width: 20%">Status</th>
+            <th style="width: 50%">Aksi</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach ($lampuStatuses as $l)
+        <tr>
+            <!-- Nama Lampu -->
+            <td id="lampu-name-{{ $l->id }}" class="fw-semibold">
+                {{ $l->name }}
+            </td>
+
+            <!-- Toggle Lampu -->
+            <td class="text-center">
+                <div class="form-check form-switch d-flex justify-content-center">
+                    <input 
+                        class="form-check-input switch-lampu" 
+                        type="checkbox" 
+                        data-id="{{ $l->id }}"
+                        {{ $l->status ? 'checked' : '' }}
+                    >
+                </div>
+            </td>
+
+            <!-- Edit Nama -->
+            <td>
+                <div class="d-flex align-items-center gap-3">
+                    <input
+                        type="text"
+                        class="form-control device-name-input"
+                        style="max-width: 250px;"
+                        data-id="{{ $l->id }}"
+                        value="{{ $l->name }}"
+                    >
+
+                    <button class="btn btn-primary btn-sm save-name-btn"
+                        data-id="{{ $l->id }}">
+                        Simpan Nama
+                    </button>
+                </div>
+            </td>
+        </tr>
+        @endforeach
+    </tbody>
+</table>
+
       <!-- Stats -->
       <div class="chart-card">
         <h3 class="section-title">Statistics</h3>
@@ -684,6 +736,83 @@
           getData();
         }, 2000);
       });
+
+      // Toggle Lampu
+$(document).on('change', '.switch-lampu', function () {
+
+    let id = $(this).data('id');
+    let status = $(this).is(':checked') ? 1 : 0;
+
+    $.ajax({
+        url: "/lampu/toggle/" + id,
+        type: "POST",
+        data: {
+            _token: "{{ csrf_token() }}",
+            status: status
+        },
+        success: function (res) {
+            console.log("Lampu " + id + " status: " + res.status);
+        }
+    });
+
+});
+
+document.querySelectorAll('.device-name-input').forEach(input => {
+    input.addEventListener('change', function() {
+        let id = this.dataset.id;
+        let name = this.value;
+
+        fetch('{{ route('devices.updateName') }}', {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({
+                id: id,
+                name: name
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success){
+                console.log("Nama berhasil diupdate:", data.name);
+            }
+        });
+    });
+});
+
+document.querySelectorAll('.save-name-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        let id = this.dataset.id;
+        let name = document.querySelector(`.device-name-input[data-id="${id}"]`).value;
+
+        fetch('{{ route('devices.updateName') }}', {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({ id, name })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+
+                // Ubah nama di tabel tanpa reload
+                document.getElementById(`lampu-name-${id}`).textContent = data.name;
+
+                // Kasih efek berhasil
+                let input = document.querySelector(`.device-name-input[data-id="${id}"]`);
+                input.classList.add('is-valid');
+                setTimeout(() => input.classList.remove('is-valid'), 1000);
+
+            }
+        });
+    });
+});
+
+
     </script>
   </body>
 </html>

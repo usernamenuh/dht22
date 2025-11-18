@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Dht22;
 use App\Models\Setting;
+use App\Models\SmartHome;
 
 class Dht22Controller extends Controller
 {
@@ -59,4 +60,50 @@ class Dht22Controller extends Controller
 
         return redirect()->back()->with('success', 'Setting diperbarui!');
     }
+
+
+    // Mengirim data lampau ke esp8266
+    public function getLampu() {
+
+        $smartHomes = SmartHome::all();
+
+        if($smartHomes->isEmpty()) {
+            return response()->json([
+                'nama' => $smartHomes->name,
+                'status' => $smartHomes->status,
+                'message' => 'No Smart Home data found',
+            ]);
+        } 
+        return response()->json($smartHomes);
+    }
+
+   public function toggle($id)
+    {
+    $lampu = Smarthome::findOrFail($id);
+    $lampu->status = !$lampu->status;
+    $lampu->save();
+
+    return response()->json([
+        'success' => true,
+        'status' => $lampu->status
+    ]);
+    }
+
+public function updateName(Request $request)
+{
+    $device = SmartHome::find($request->id);
+
+    if(!$device){
+        return response()->json(['success' => false, 'message' => 'Device not found']);
+    }
+
+    $device->name = $request->name;
+    $device->save();
+
+    return response()->json([
+        'success' => true,
+        'name' => $device->name
+    ]);
+}
+
 }
